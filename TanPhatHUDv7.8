@@ -1,5 +1,5 @@
---// 🌌 Heheboy Fly v6.2 (PC + Mobile + Menu Icon Fix)
--- by Heheboy 😎
+--// 🌌 Heheboy Fly + Speed + Invisible HUD (Movable GUI)
+-- by Heheboy + TanPhatHUD 😎
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -18,28 +18,71 @@ local hrp = char:WaitForChild("HumanoidRootPart")
 -- 🌈 GUI
 -----------------------------------------------------------
 local gui = Instance.new("ScreenGui")
-gui.Name = "HeheboyControl"
+gui.Name = "TanPhatHUD"
 gui.ResetOnSpawn = false
-gui.IgnoreGuiInset = false -- ⚠️ fix không bị che icon
+gui.IgnoreGuiInset = false
 gui.Parent = player:WaitForChild("PlayerGui")
 
--- 🌟 Nút mở/đóng GUI (luôn hiện)
+-- Toggle Button
 local toggleBtn = Instance.new("ImageButton")
 toggleBtn.Name = "ToggleButton"
 toggleBtn.Size = UDim2.new(0, 70, 0, 70)
 toggleBtn.Position = UDim2.new(1, -85, 1, -100)
 toggleBtn.BackgroundTransparency = 1
-toggleBtn.Image = "rbxassetid://3926305904" -- icon 3 gạch Roblox UI (menu)
+toggleBtn.Image = "rbxassetid://3926305904"
 toggleBtn.ImageRectOffset = Vector2.new(84, 204)
 toggleBtn.ImageRectSize = Vector2.new(36, 36)
 toggleBtn.ImageColor3 = Color3.fromRGB(0, 255, 255)
 toggleBtn.ZIndex = 10
 toggleBtn.Parent = gui
+toggleBtn.Active = true
 
--- 🌌 Frame chính
+-- Movable GUI functionality
+do
+	local dragging = false
+	local dragInput, dragStart, startPos
+
+	local function update(input)
+		local delta = input.Position - dragStart
+		toggleBtn.Position = UDim2.new(
+			startPos.X.Scale,
+			startPos.X.Offset + delta.X,
+			startPos.Y.Scale,
+			startPos.Y.Offset + delta.Y
+		)
+	end
+
+	toggleBtn.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			dragging = true
+			dragStart = input.Position
+			startPos = toggleBtn.Position
+
+			input.Changed:Connect(function()
+				if input.UserInputState == Enum.UserInputState.End then
+					dragging = false
+				end
+			end)
+		end
+	end)
+
+	toggleBtn.InputChanged:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+			dragInput = input
+		end
+	end)
+
+	UserInputService.InputChanged:Connect(function(input)
+		if input == dragInput and dragging then
+			update(input)
+		end
+	end)
+end
+
+-- Frame
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 240, 0, 130)
-frame.Position = UDim2.new(0.5, -120, 1.2, 0) -- bắt đầu ẩn dưới
+frame.Size = UDim2.new(0, 240, 0, 170)
+frame.Position = UDim2.new(0.5, -120, 1.2, 0)
 frame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
 frame.BorderSizePixel = 0
 frame.Visible = false
@@ -62,6 +105,7 @@ title.BackgroundTransparency = 1
 title.Size = UDim2.new(1, 0, 0, 25)
 title.Parent = frame
 
+-- Helper function for buttons
 local function makeBtn(text, y)
 	local b = Instance.new("TextButton")
 	b.Size = UDim2.new(0.9, 0, 0, 40)
@@ -79,6 +123,7 @@ end
 
 local flyBtn = makeBtn("✈️ Fly: OFF", 30)
 local invisBtn = makeBtn("👻 Invisible: OFF", 75)
+local speedBtn = makeBtn("💨 Speed: OFF", 120)
 
 -----------------------------------------------------------
 -- ✈️ Fly System
@@ -106,11 +151,11 @@ local function createTrail()
 end
 
 local function shakeCam(dur)
-	local id = "HeheboyShake"
+	local id = "ShakeCam"
 	local elapsed = 0
 	RunService:BindToRenderStep(id, Enum.RenderPriority.Camera.Value + 2, function(dt)
 		elapsed += dt * 10
-		camera.CFrame = camera.CFrame * CFrame.Angles(math.sin(elapsed) * 0.002, math.cos(elapsed) * 0.002, 0)
+		camera.CFrame = camera.CFrame * CFrame.Angles(math.sin(elapsed)*0.002, math.cos(elapsed)*0.002, 0)
 	end)
 	task.delay(dur or 0.8, function()
 		RunService:UnbindFromRenderStep(id)
@@ -149,7 +194,7 @@ local function startFly()
 	TweenService:Create(flyBtn, TweenInfo.new(0.3), {BackgroundColor3 = Color3.fromRGB(0, 200, 255)}):Play()
 	flyBtn.Text = "✈️ Fly: ON"
 
-	RunService:BindToRenderStep("HeheboyFlyLoop", Enum.RenderPriority.Input.Value, function(dt)
+	RunService:BindToRenderStep("FlyLoop", Enum.RenderPriority.Input.Value, function(dt)
 		if not flying then return end
 		local moveDir = Vector3.zero
 
@@ -168,7 +213,7 @@ local function startFly()
 			moveDir = moveDir.Unit
 			speed = math.clamp(speed + ACCEL * dt, 25, MAX_SPEED)
 		else
-			speed = math.clamp(speed - ACCEL * dt * 2, 0, MAX_SPEED)
+			speed = math.clamp(speed - ACCEL * dt*2, 0, MAX_SPEED)
 		end
 
 		bv.Velocity = moveDir * speed
@@ -180,7 +225,7 @@ local function stopFly()
 	if not flying then return end
 	flying = false
 	hum.PlatformStand = false
-	RunService:UnbindFromRenderStep("HeheboyFlyLoop")
+	RunService:UnbindFromRenderStep("FlyLoop")
 	if bv then bv:Destroy() end
 	if bg then bg:Destroy() end
 	if trail then trail:Destroy() end
@@ -205,11 +250,25 @@ invisBtn.MouseButton1Click:Connect(function()
 			p.Transparency = invisible and 1 or 0
 		end
 	end
-
 	TweenService:Create(invisBtn, TweenInfo.new(0.3), {
 		BackgroundColor3 = invisible and Color3.fromRGB(0, 200, 255) or Color3.fromRGB(60, 60, 60)
 	}):Play()
 	invisBtn.Text = invisible and "👻 Invisible: ON" or "👻 Invisible: OFF"
+end)
+
+-----------------------------------------------------------
+-- 💨 Speed Boost
+-----------------------------------------------------------
+local speedBoost = false
+local NORMAL_WALK = 16
+local BOOST_SPEED = 90
+speedBtn.MouseButton1Click:Connect(function()
+	speedBoost = not speedBoost
+	hum.WalkSpeed = speedBoost and BOOST_SPEED or NORMAL_WALK
+	TweenService:Create(speedBtn, TweenInfo.new(0.3), {
+		BackgroundColor3 = speedBoost and Color3.fromRGB(0, 200, 255) or Color3.fromRGB(60, 60, 60)
+	}):Play()
+	speedBtn.Text = speedBoost and "💨 Speed: ON" or "💨 Speed: OFF"
 end)
 
 -----------------------------------------------------------
@@ -230,6 +289,10 @@ toggleBtn.MouseButton1Click:Connect(function()
 	end
 end)
 
+
+          -----------------------------------------------------------
+          --               ⚠️ Thông báo Script                     --
+          -----------------------------------------------------------
 -- hiện script đang trong quá trình thử nghiệm và có thể có lỗi.
 -- vui lòng báo cáo nếu có lỗi để fix nhanh chóng.
 -- cảm ơn đã chơi!
@@ -238,6 +301,9 @@ end)
 -- sẽ có thêm nhiều tính năng trong tương lai.
 -- sẽ cố gắng rep facebook nhanh nhất.
 -- mọi thắc mắc vui lòng ib facebook bên trên để được giải đáp nhanh chóng.
+-- thêm tính năng chạy nhanh hơn.
+-- nút mở đóng có thể di chuyển.
+-- thông báo rõ hơn trên tiktok: @duongtanphat14072013.
 
 -- The script is currently in the testing phase and may contain errors.
 -- Please report any errors for quick fixes.
@@ -247,3 +313,6 @@ end)
 -- there will be more features in the future.
 -- i will try to reply to facebook as soon as possible.
 -- For any inquiries, please message us on the Facebook above for a quick response.
+-- Added faster running feature.
+-- The open/close button can be moved.
+-- Clearer announcement on TikTok: @duongtanphat14072013.
