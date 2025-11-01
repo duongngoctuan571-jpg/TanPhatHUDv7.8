@@ -1,4 +1,4 @@
---// 🌌 Heheboy Fly + Speed + Invisible HUD (Movable GUI)
+--// 🌌 Heheboy Fly + Speed + Invisible + NoClip (Full Fixed GUI)
 -- by Heheboy + TanPhatHUD 😎
 
 local Players = game:GetService("Players")
@@ -17,11 +17,9 @@ local hrp = char:WaitForChild("HumanoidRootPart")
 -----------------------------------------------------------
 -- 🌈 GUI
 -----------------------------------------------------------
-local gui = Instance.new("ScreenGui")
+local gui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
 gui.Name = "TanPhatHUD"
 gui.ResetOnSpawn = false
-gui.IgnoreGuiInset = false
-gui.Parent = player:WaitForChild("PlayerGui")
 
 -- Toggle Button
 local toggleBtn = Instance.new("ImageButton")
@@ -33,79 +31,91 @@ toggleBtn.Image = "rbxassetid://3926305904"
 toggleBtn.ImageRectOffset = Vector2.new(84, 204)
 toggleBtn.ImageRectSize = Vector2.new(36, 36)
 toggleBtn.ImageColor3 = Color3.fromRGB(0, 255, 255)
-toggleBtn.ZIndex = 10
 toggleBtn.Parent = gui
-toggleBtn.Active = true
 
--- Movable GUI functionality
+-- Toggle button movable
 do
-	local dragging = false
-	local dragInput, dragStart, startPos
-
+	local dragging, dragInput, dragStart, startPos
 	local function update(input)
 		local delta = input.Position - dragStart
 		toggleBtn.Position = UDim2.new(
-			startPos.X.Scale,
-			startPos.X.Offset + delta.X,
-			startPos.Y.Scale,
-			startPos.Y.Offset + delta.Y
+			startPos.X.Scale, startPos.X.Offset + delta.X,
+			startPos.Y.Scale, startPos.Y.Offset + delta.Y
 		)
 	end
-
 	toggleBtn.InputBegan:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 			dragging = true
 			dragStart = input.Position
 			startPos = toggleBtn.Position
-
 			input.Changed:Connect(function()
-				if input.UserInputState == Enum.UserInputState.End then
-					dragging = false
-				end
+				if input.UserInputState == Enum.UserInputState.End then dragging = false end
 			end)
 		end
 	end)
-
 	toggleBtn.InputChanged:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
 			dragInput = input
 		end
 	end)
-
 	UserInputService.InputChanged:Connect(function(input)
-		if input == dragInput and dragging then
-			update(input)
-		end
+		if input == dragInput and dragging then update(input) end
 	end)
 end
 
 -- Frame
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 240, 0, 170)
-frame.Position = UDim2.new(0.5, -120, 1.2, 0)
+frame.Size = UDim2.new(0, 240, 0, 210)
+frame.Position = UDim2.new(0.5, -120, 0.7, 0)
 frame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
 frame.BorderSizePixel = 0
 frame.Visible = false
 frame.Parent = gui
 
-local UIStroke = Instance.new("UIStroke", frame)
-UIStroke.Thickness = 2
-UIStroke.Color = Color3.fromRGB(0, 255, 255)
-UIStroke.Transparency = 0.3
+Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 12)
+local stroke = Instance.new("UIStroke", frame)
+stroke.Color = Color3.fromRGB(0, 255, 255)
+stroke.Thickness = 2
+stroke.Transparency = 0.3
 
-local UICorner = Instance.new("UICorner", frame)
-UICorner.CornerRadius = UDim.new(0, 12)
-
-local title = Instance.new("TextLabel")
+local title = Instance.new("TextLabel", frame)
 title.Text = "🚀 TanPhatHUD"
 title.Font = Enum.Font.GothamBold
 title.TextSize = 18
 title.TextColor3 = Color3.fromRGB(0, 255, 255)
 title.BackgroundTransparency = 1
 title.Size = UDim2.new(1, 0, 0, 25)
-title.Parent = frame
 
--- Helper function for buttons
+-- Frame movable
+do
+	local dragging, dragInput, dragStart, startPos
+	local function update(input)
+		local delta = input.Position - dragStart
+		frame.Position = UDim2.new(
+			startPos.X.Scale, startPos.X.Offset + delta.X,
+			startPos.Y.Scale, startPos.Y.Offset + delta.Y
+		)
+	end
+	frame.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			dragging = true
+			dragStart = input.Position
+			startPos = frame.Position
+			input.Changed:Connect(function()
+				if input.UserInputState == Enum.UserInputState.End then dragging = false end
+			end)
+		end
+	end)
+	frame.InputChanged:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+			dragInput = input
+		end
+	end)
+	UserInputService.InputChanged:Connect(function(input)
+		if input == dragInput and dragging then update(input) end
+	end)
+end
+
 local function makeBtn(text, y)
 	local b = Instance.new("TextButton")
 	b.Size = UDim2.new(0.9, 0, 0, 40)
@@ -115,8 +125,7 @@ local function makeBtn(text, y)
 	b.Font = Enum.Font.GothamBold
 	b.TextSize = 18
 	b.TextColor3 = Color3.fromRGB(255, 255, 255)
-	local c = Instance.new("UICorner", b)
-	c.CornerRadius = UDim.new(0, 10)
+	Instance.new("UICorner", b).CornerRadius = UDim.new(0, 10)
 	b.Parent = frame
 	return b
 end
@@ -124,48 +133,16 @@ end
 local flyBtn = makeBtn("✈️ Fly: OFF", 30)
 local invisBtn = makeBtn("👻 Invisible: OFF", 75)
 local speedBtn = makeBtn("💨 Speed: OFF", 120)
+local noclipBtn = makeBtn("🚪 NoClip: OFF", 165)
 
 -----------------------------------------------------------
--- ✈️ Fly System
+-- ✈️ Fly System (fix mobile bay cao)
 -----------------------------------------------------------
-local flying = false
-local bv, bg, trail
-local speed = 0
-local MAX_SPEED = 90
-local ACCEL = 80
-
-local function createTrail()
-	local a0 = Instance.new("Attachment", hrp)
-	a0.Position = Vector3.new(0, 0.8, -1)
-	local a1 = Instance.new("Attachment", hrp)
-	a1.Position = Vector3.new(0, -0.8, 1)
-	local tr = Instance.new("Trail")
-	tr.Attachment0 = a0
-	tr.Attachment1 = a1
-	tr.Lifetime = 0.25
-	tr.Transparency = NumberSequence.new(0.2, 1)
-	tr.Color = ColorSequence.new(Color3.fromRGB(0, 200, 255), Color3.fromRGB(0, 120, 255))
-	tr.LightEmission = 1
-	tr.Parent = hrp
-	return tr
-end
-
-local function shakeCam(dur)
-	local id = "ShakeCam"
-	local elapsed = 0
-	RunService:BindToRenderStep(id, Enum.RenderPriority.Camera.Value + 2, function(dt)
-		elapsed += dt * 10
-		camera.CFrame = camera.CFrame * CFrame.Angles(math.sin(elapsed)*0.002, math.cos(elapsed)*0.002, 0)
-	end)
-	task.delay(dur or 0.8, function()
-		RunService:UnbindFromRenderStep(id)
-	end)
-end
-
+local flying, bv, bg = false, nil, nil
+local speed, MAX_SPEED, ACCEL = 0, 90, 80
 local keys = {}
 UserInputService.InputBegan:Connect(function(i, gp)
-	if gp then return end
-	keys[i.KeyCode] = true
+	if not gp then keys[i.KeyCode] = true end
 end)
 UserInputService.InputEnded:Connect(function(i)
 	keys[i.KeyCode] = false
@@ -188,16 +165,12 @@ local function startFly()
 	bg.P = 8000
 	bg.Parent = hrp
 
-	trail = createTrail()
-	shakeCam(1)
-
-	TweenService:Create(flyBtn, TweenInfo.new(0.3), {BackgroundColor3 = Color3.fromRGB(0, 200, 255)}):Play()
+	TweenService:Create(flyBtn, TweenInfo.new(0.3), {BackgroundColor3 = Color3.fromRGB(0,200,255)}):Play()
 	flyBtn.Text = "✈️ Fly: ON"
 
 	RunService:BindToRenderStep("FlyLoop", Enum.RenderPriority.Input.Value, function(dt)
 		if not flying then return end
 		local moveDir = Vector3.zero
-
 		if UserInputService.TouchEnabled then
 			moveDir = hum.MoveDirection
 		else
@@ -205,34 +178,29 @@ local function startFly()
 			if keys[Enum.KeyCode.S] then moveDir -= camera.CFrame.LookVector end
 			if keys[Enum.KeyCode.A] then moveDir -= camera.CFrame.RightVector end
 			if keys[Enum.KeyCode.D] then moveDir += camera.CFrame.RightVector end
-			if keys[Enum.KeyCode.Space] then moveDir += Vector3.new(0, 1, 0) end
-			if keys[Enum.KeyCode.LeftShift] then moveDir -= Vector3.new(0, 1, 0) end
+			if keys[Enum.KeyCode.Space] then moveDir += Vector3.new(0,1,0) end
+			if keys[Enum.KeyCode.LeftShift] then moveDir -= Vector3.new(0,1,0) end
 		end
-
 		if moveDir.Magnitude > 0 then
 			moveDir = moveDir.Unit
 			speed = math.clamp(speed + ACCEL * dt, 25, MAX_SPEED)
 		else
 			speed = math.clamp(speed - ACCEL * dt*2, 0, MAX_SPEED)
 		end
-
 		bv.Velocity = moveDir * speed
 		bg.CFrame = CFrame.new(hrp.Position, hrp.Position + camera.CFrame.LookVector)
 	end)
 end
 
 local function stopFly()
-	if not flying then return end
 	flying = false
 	hum.PlatformStand = false
 	RunService:UnbindFromRenderStep("FlyLoop")
 	if bv then bv:Destroy() end
 	if bg then bg:Destroy() end
-	if trail then trail:Destroy() end
-	TweenService:Create(flyBtn, TweenInfo.new(0.3), {BackgroundColor3 = Color3.fromRGB(60, 60, 60)}):Play()
+	TweenService:Create(flyBtn, TweenInfo.new(0.3), {BackgroundColor3 = Color3.fromRGB(60,60,60)}):Play()
 	flyBtn.Text = "✈️ Fly: OFF"
 end
-
 flyBtn.MouseButton1Click:Connect(function()
 	if flying then stopFly() else startFly() end
 end)
@@ -251,24 +219,48 @@ invisBtn.MouseButton1Click:Connect(function()
 		end
 	end
 	TweenService:Create(invisBtn, TweenInfo.new(0.3), {
-		BackgroundColor3 = invisible and Color3.fromRGB(0, 200, 255) or Color3.fromRGB(60, 60, 60)
+		BackgroundColor3 = invisible and Color3.fromRGB(0,200,255) or Color3.fromRGB(60,60,60)
 	}):Play()
 	invisBtn.Text = invisible and "👻 Invisible: ON" or "👻 Invisible: OFF"
 end)
 
 -----------------------------------------------------------
--- 💨 Speed Boost
+-- 💨 Speed
 -----------------------------------------------------------
 local speedBoost = false
-local NORMAL_WALK = 16
-local BOOST_SPEED = 90
+local NORMAL_WALK, BOOST_SPEED = 16, 90
 speedBtn.MouseButton1Click:Connect(function()
 	speedBoost = not speedBoost
 	hum.WalkSpeed = speedBoost and BOOST_SPEED or NORMAL_WALK
 	TweenService:Create(speedBtn, TweenInfo.new(0.3), {
-		BackgroundColor3 = speedBoost and Color3.fromRGB(0, 200, 255) or Color3.fromRGB(60, 60, 60)
+		BackgroundColor3 = speedBoost and Color3.fromRGB(0,200,255) or Color3.fromRGB(60,60,60)
 	}):Play()
 	speedBtn.Text = speedBoost and "💨 Speed: ON" or "💨 Speed: OFF"
+end)
+
+-----------------------------------------------------------
+-- 🚪 NoClip
+-----------------------------------------------------------
+local noclip = false
+noclipBtn.MouseButton1Click:Connect(function()
+	noclip = not noclip
+	TweenService:Create(noclipBtn, TweenInfo.new(0.3), {
+		BackgroundColor3 = noclip and Color3.fromRGB(0,200,255) or Color3.fromRGB(60,60,60)
+	}):Play()
+	noclipBtn.Text = noclip and "🚪 NoClip: ON" or "🚪 NoClip: OFF"
+
+	if not noclip then
+		for _, v in pairs(char:GetChildren()) do
+			if v:IsA("BasePart") then v.CanCollide = true end
+		end
+	end
+end)
+RunService.Stepped:Connect(function()
+	if noclip then
+		for _, v in pairs(char:GetChildren()) do
+			if v:IsA("BasePart") then v.CanCollide = false end
+		end
+	end
 end)
 
 -----------------------------------------------------------
@@ -289,7 +281,6 @@ toggleBtn.MouseButton1Click:Connect(function()
 	end
 end)
 
-
           -----------------------------------------------------------
           --               ⚠️ Thông báo Script                     --
           -----------------------------------------------------------
@@ -304,6 +295,8 @@ end)
 -- thêm tính năng chạy nhanh hơn.
 -- nút mở đóng có thể di chuyển.
 -- thông báo rõ hơn trên tiktok: @duongtanphat14072013.
+-- chức năng đi xuyên tường.
+-- fix fly mobile
 
 -- The script is currently in the testing phase and may contain errors.
 -- Please report any errors for quick fixes.
@@ -316,3 +309,5 @@ end)
 -- Added faster running feature.
 -- The open/close button can be moved.
 -- Clearer announcement on TikTok: @duongtanphat14072013.
+-- Added through wall function.
+-- Fixed mobile flying.
