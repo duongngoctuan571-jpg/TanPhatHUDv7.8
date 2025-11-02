@@ -215,9 +215,14 @@ end)
 -----------------------------------------------------------
 -- 🔍 ESP người chơi
 -----------------------------------------------------------
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+
+local player = Players.LocalPlayer
 local espEnabled = false
 local espObjects = {}
 
+-- Hàm tạo ESP cho một player
 local function createESP(target)
 	if not target.Character then return end
 	local head = target.Character:FindFirstChild("Head")
@@ -231,60 +236,87 @@ local function createESP(target)
 	billboard.Adornee = head
 	billboard.Parent = head
 
-	local textLabel = Instance.new("TextLabel", billboard)
+	local textLabel = Instance.new("TextLabel")
 	textLabel.Size = UDim2.new(1, 0, 1, 0)
 	textLabel.BackgroundTransparency = 1
 	textLabel.TextColor3 = Color3.fromRGB(0, 255, 255)
 	textLabel.Font = Enum.Font.GothamBold
 	textLabel.TextSize = 16
 	textLabel.TextStrokeTransparency = 0.5
-	RunService.RenderStepped:Connect(function()
+	textLabel.Parent = billboard
+
+	-- Cập nhật khoảng cách liên tục
+	local connection
+	connection = RunService.RenderStepped:Connect(function()
 		if head and espEnabled then
-			local distance = (player.Character.HumanoidRootPart.Position - head.Position).Magnitude
-			textLabel.Text = string.format("%s (%.0fm)", target.Name, distance)
+			local hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+			if hrp then
+				local distance = (hrp.Position - head.Position).Magnitude
+				textLabel.Text = string.format("%s (%.0fm)", target.Name, distance)
+			end
+		else
+			connection:Disconnect()
 		end
 	end)
 
-	espObjects[target] = billboard
+	espObjects[target] = {billboard = billboard, connection = connection}
 end
 
+-- Hàm xóa ESP
 local function removeESP(target)
 	if espObjects[target] then
-		espObjects[target]:Destroy()
+		if espObjects[target].connection then
+			espObjects[target].connection:Disconnect()
+		end
+		if espObjects[target].billboard then
+			espObjects[target].billboard:Destroy()
+		end
 		espObjects[target] = nil
 	end
 end
 
+-- Toggle ESP
 local function toggleESP()
 	espEnabled = not espEnabled
 	espBtn.Text = espEnabled and "🔍 ESP: ON" or "🔍 ESP: OFF"
 	espBtn.BackgroundColor3 = espEnabled and Color3.fromRGB(0,200,255) or Color3.fromRGB(60,60,60)
 
 	if espEnabled then
-		for _, p in pairs(game.Players:GetPlayers()) do
+		for _, p in pairs(Players:GetPlayers()) do
 			if p ~= player then
 				createESP(p)
+
+				-- Cập nhật ESP khi player respawn
+				p.CharacterAdded:Connect(function(char)
+					if espEnabled then
+						createESP(p)
+					end
+				end)
 			end
 		end
 	else
-		for _, p in pairs(espObjects) do
-			p:Destroy()
+		for p, _ in pairs(espObjects) do
+			removeESP(p)
 		end
-		espObjects = {}
 	end
 end
 
 espBtn.MouseButton1Click:Connect(toggleESP)
 
--- cập nhật realtime (player vào/ra)
+-- Tạo ESP khi player mới join
 Players.PlayerAdded:Connect(function(p)
 	if espEnabled then
 		createESP(p)
+		p.CharacterAdded:Connect(function(char)
+			if espEnabled then
+				createESP(p)
+			end
+		end)
 	end
 end)
-Players.PlayerRemoving:Connect(function(p)
-	removeESP(p)
-end)
+
+-- Xóa ESP khi player rời
+Players.PlayerRemoving:Connect(removeESP)
 
 -----------------------------------------------------------
 -- ✈️ Fly V3 GUI (Integrated)
