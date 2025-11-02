@@ -228,6 +228,17 @@ local function createESP(target)
 	local head = target.Character:FindFirstChild("Head")
 	if not head then return end
 
+	-- Nếu đã có ESP trước đó thì xóa
+	if espObjects[target] then
+		if espObjects[target].connection then
+			espObjects[target].connection:Disconnect()
+		end
+		if espObjects[target].billboard then
+			espObjects[target].billboard:Destroy()
+		end
+		espObjects[target] = nil
+	end
+
 	-- Tạo BillboardGui
 	local billboard = Instance.new("BillboardGui")
 	billboard.Name = "ESP"
@@ -282,23 +293,14 @@ local function toggleESP()
 	espBtn.BackgroundColor3 = espEnabled and Color3.fromRGB(0,200,255) or Color3.fromRGB(60,60,60)
 
 	if espEnabled then
+		-- Tạo ESP cho tất cả player đã có character
 		for _, p in pairs(Players:GetPlayers()) do
-			if p ~= player then
-				-- Tạo ESP nếu character đã tồn tại
-				if p.Character then
-					createESP(p)
-				end
-
-				-- Lắng nghe respawn/character spawn
-				p.CharacterAdded:Connect(function(char)
-					if espEnabled then
-						createESP(p)
-					end
-				end)
+			if p ~= player and p.Character then
+				createESP(p)
 			end
 		end
 	else
-		-- Tắt hết ESP
+		-- Xóa hết ESP
 		for p, _ in pairs(espObjects) do
 			removeESP(p)
 		end
@@ -307,15 +309,20 @@ end
 
 espBtn.MouseButton1Click:Connect(toggleESP)
 
+-- Gắn listener CharacterAdded cho tất cả player (join trước hoặc sau)
+for _, p in pairs(Players:GetPlayers()) do
+	if p ~= player then
+		p.CharacterAdded:Connect(function(char)
+			if espEnabled then
+				createESP(p)
+			end
+		end)
+	end
+end
+
 -- Player mới join
 Players.PlayerAdded:Connect(function(p)
-	if espEnabled and p ~= player then
-		-- Nếu character đã spawn
-		if p.Character then
-			createESP(p)
-		end
-
-		-- Lắng nghe respawn/character spawn
+	if p ~= player then
 		p.CharacterAdded:Connect(function(char)
 			if espEnabled then
 				createESP(p)
