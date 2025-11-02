@@ -27,11 +27,48 @@ toggleBtn.Name = "ToggleButton"
 toggleBtn.Size = UDim2.new(0, 70, 0, 70)
 toggleBtn.Position = UDim2.new(1, -85, 1, -100)
 toggleBtn.BackgroundTransparency = 1
-toggleBtn.Image = "rbxassetid://3926305904"
-toggleBtn.ImageRectOffset = Vector2.new(84, 204)
-toggleBtn.ImageRectSize = Vector2.new(36, 36)
+toggleBtn.Image = "rbxassetid://137676684711350"
 toggleBtn.ImageColor3 = Color3.fromRGB(0, 255, 255)
 toggleBtn.Parent = gui
+
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0.5, 0)
+corner.Parent = toggleBtn
+
+local UserInputService = game:GetService("UserInputService")
+
+local dragging
+local dragStart
+local startPos
+
+local function update(input)
+	local delta = input.Position - dragStart
+	toggleBtn.Position = UDim2.new(
+		startPos.X.Scale,
+		startPos.X.Offset + delta.X,
+		startPos.Y.Scale,
+		startPos.Y.Offset + delta.Y
+	)
+end
+
+toggleBtn.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 then
+		dragging = true
+		dragStart = input.Position
+		startPos = toggleBtn.Position
+		input.Changed:Connect(function()
+			if input.UserInputState == Enum.UserInputState.End then
+				dragging = false
+			end
+		end)
+	end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+	if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+		update(input)
+	end
+end)
 
 -- Frame
 local frame = Instance.new("Frame")
@@ -675,9 +712,9 @@ toggleBtn.MouseButton1Click:Connect(function()
 	end
 end)
 
-          -----------------------------------------------------------
-          --               ⚠️ Thông báo Script                     --
-          -----------------------------------------------------------
+-----------------------------------------------------------
+--               ⚠️ Thông báo Script                     --
+-----------------------------------------------------------
 -- hiện script đang trong quá trình thử nghiệm và có thể có lỗi.
 -- vui lòng báo cáo nếu có lỗi để fix nhanh chóng.
 -- cảm ơn đã chơi!
@@ -692,6 +729,7 @@ end)
 -- chức năng đi xuyên tường.
 -- fix fly mobile.
 -- fix lại fly.
+-- thích hợp pc và mobile.
 
 -- The script is currently in the testing phase and may contain errors.
 -- Please report any errors for quick fixes.
@@ -707,3 +745,4 @@ end)
 -- Added through wall function.
 -- Fixed mobile flying.
 -- Fixed flying again.
+-- Suitable for PC and mobile.
