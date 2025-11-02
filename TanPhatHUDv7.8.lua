@@ -284,9 +284,12 @@ local function toggleESP()
 	if espEnabled then
 		for _, p in pairs(Players:GetPlayers()) do
 			if p ~= player then
-				createESP(p)
+				-- Tạo ESP nếu character đã tồn tại
+				if p.Character then
+					createESP(p)
+				end
 
-				-- Cập nhật ESP khi player respawn
+				-- Lắng nghe respawn/character spawn
 				p.CharacterAdded:Connect(function(char)
 					if espEnabled then
 						createESP(p)
@@ -295,6 +298,7 @@ local function toggleESP()
 			end
 		end
 	else
+		-- Tắt hết ESP
 		for p, _ in pairs(espObjects) do
 			removeESP(p)
 		end
@@ -303,10 +307,15 @@ end
 
 espBtn.MouseButton1Click:Connect(toggleESP)
 
--- Tạo ESP khi player mới join
+-- Player mới join
 Players.PlayerAdded:Connect(function(p)
-	if espEnabled then
-		createESP(p)
+	if espEnabled and p ~= player then
+		-- Nếu character đã spawn
+		if p.Character then
+			createESP(p)
+		end
+
+		-- Lắng nghe respawn/character spawn
 		p.CharacterAdded:Connect(function(char)
 			if espEnabled then
 				createESP(p)
@@ -315,7 +324,7 @@ Players.PlayerAdded:Connect(function(p)
 	end
 end)
 
--- Xóa ESP khi player rời
+-- Player rời game
 Players.PlayerRemoving:Connect(removeESP)
 
 -----------------------------------------------------------
