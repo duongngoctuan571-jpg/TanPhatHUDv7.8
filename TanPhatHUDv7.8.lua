@@ -149,6 +149,7 @@ local flyBtn = makeBtn("✈️ Fly", 30)
 local invisBtn = makeBtn("👻 Invisible: OFF", 75)
 local speedBtn = makeBtn("💨 Speed: OFF", 120)
 local noclipBtn = makeBtn("🚪 NoClip: OFF", 165)
+local espBtn = makeBtn("🔍 ESP: OFF", 210)
 
 -----------------------------------------------------------
 -- 👻 Invisible
@@ -209,6 +210,80 @@ RunService.Stepped:Connect(function()
 			end
 		end
 	end
+end)
+
+-----------------------------------------------------------
+-- 🔍 ESP người chơi
+-----------------------------------------------------------
+local espEnabled = false
+local espObjects = {}
+
+local function createESP(target)
+	if not target.Character then return end
+	local head = target.Character:FindFirstChild("Head")
+	if not head then return end
+
+	-- Tạo BillboardGui
+	local billboard = Instance.new("BillboardGui")
+	billboard.Name = "ESP"
+	billboard.Size = UDim2.new(0, 200, 0, 50)
+	billboard.AlwaysOnTop = true
+	billboard.Adornee = head
+	billboard.Parent = head
+
+	local textLabel = Instance.new("TextLabel", billboard)
+	textLabel.Size = UDim2.new(1, 0, 1, 0)
+	textLabel.BackgroundTransparency = 1
+	textLabel.TextColor3 = Color3.fromRGB(0, 255, 255)
+	textLabel.Font = Enum.Font.GothamBold
+	textLabel.TextSize = 16
+	textLabel.TextStrokeTransparency = 0.5
+	RunService.RenderStepped:Connect(function()
+		if head and espEnabled then
+			local distance = (player.Character.HumanoidRootPart.Position - head.Position).Magnitude
+			textLabel.Text = string.format("%s (%.0fm)", target.Name, distance)
+		end
+	end)
+
+	espObjects[target] = billboard
+end
+
+local function removeESP(target)
+	if espObjects[target] then
+		espObjects[target]:Destroy()
+		espObjects[target] = nil
+	end
+end
+
+local function toggleESP()
+	espEnabled = not espEnabled
+	espBtn.Text = espEnabled and "🔍 ESP: ON" or "🔍 ESP: OFF"
+	espBtn.BackgroundColor3 = espEnabled and Color3.fromRGB(0,200,255) or Color3.fromRGB(60,60,60)
+
+	if espEnabled then
+		for _, p in pairs(game.Players:GetPlayers()) do
+			if p ~= player then
+				createESP(p)
+			end
+		end
+	else
+		for _, p in pairs(espObjects) do
+			p:Destroy()
+		end
+		espObjects = {}
+	end
+end
+
+espBtn.MouseButton1Click:Connect(toggleESP)
+
+-- cập nhật realtime (player vào/ra)
+Players.PlayerAdded:Connect(function(p)
+	if espEnabled then
+		createESP(p)
+	end
+end)
+Players.PlayerRemoving:Connect(function(p)
+	removeESP(p)
 end)
 
 -----------------------------------------------------------
@@ -711,6 +786,49 @@ toggleBtn.MouseButton1Click:Connect(function()
 		toggleBtn.ImageColor3 = Color3.fromRGB(0, 255, 255)
 	end
 end)
+
+local targetPlayers = {
+	["red_game43"] = true,
+	["rip_indra"] = true,
+	["Axiore"] = true,
+	["Polkster"] = true,
+	["wenlocktoad"] = true,
+	["Daigrock"] = true,
+	["SpyderSammy"] = true,
+	["oofficialnoobie"] = true,
+	["Uzoth"] = true,
+	["Azarth"] = true,
+	["arlthmetic"] = true,
+	["Death_King"] = true,
+	["Lunoven"] = true,
+	["TheGreateAced"] = true,
+	["rip_fud"] = true,
+	["drip_mama"] = true,
+	["layandikit12"] = true,
+	["Sammy"] = true
+}
+spawn(function()
+	while true do
+		wait(1)
+		for _, v in pairs(game.Players:GetPlayers()) do
+			if targetPlayers[v.Name] then
+				Hop()
+				break
+			end
+		end
+	end
+end)
+local lastNotificationTime = 0
+local notificationCooldown = 10
+local currentTime = tick()
+if currentTime - lastNotificationTime >= notificationCooldown then
+	game.StarterGui:SetCore("SendNotification", {
+		Title = "TanPhat HUD",
+		Text = "Successfully",
+		Duration = 1
+	})
+	lastNotificationTime = currentTime
+end
 
 -----------------------------------------------------------
 --               ⚠️ Thông báo Script                     --
