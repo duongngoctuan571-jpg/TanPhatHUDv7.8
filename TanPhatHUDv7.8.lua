@@ -73,11 +73,12 @@ end)
 -- Frame
 local frame = Instance.new("Frame")
 frame.Size = UDim2.new(0, 240, 0, 250)
-frame.Position = UDim2.new(0.5, -120, 0.7, 0)
+frame.Position = UDim2.new(0.5, -100, 0.5, -160)
 frame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
 frame.BorderSizePixel = 0
 frame.Visible = false
 frame.Parent = gui
+frame.Size = UDim2.new(0, 200, 0, 320)
 
 --// Kéo thả frame (hỗ trợ cả PC và điện thoại)
 local UIS = game:GetService("UserInputService")
@@ -85,7 +86,7 @@ local dragging, dragInput, mousePos, framePos
 
 frame.InputBegan:Connect(function(input)
 	if input.UserInputType == Enum.UserInputType.MouseButton1 
-	or input.UserInputType == Enum.UserInputType.Touch then
+		or input.UserInputType == Enum.UserInputType.Touch then
 		dragging = true
 		mousePos = input.Position
 		framePos = frame.Position
@@ -100,7 +101,7 @@ end)
 
 frame.InputChanged:Connect(function(input)
 	if input.UserInputType == Enum.UserInputType.MouseMovement 
-	or input.UserInputType == Enum.UserInputType.Touch then
+		or input.UserInputType == Enum.UserInputType.Touch then
 		dragInput = input
 	end
 end)
@@ -152,6 +153,84 @@ local invisBtn = makeBtn("👻 Invisible: OFF", 75)
 local speedBtn = makeBtn("💨 Speed: OFF", 120)
 local noclipBtn = makeBtn("🚪 NoClip: OFF", 165)
 local espBtn = makeBtn("🔍 ESP: OFF", 210)
+local teleBtn = makeBtn("🌀 Teleport", 255)
+
+-----------------------------------------------------------
+-- 🌀 TELEPORT - Chọn người chơi để bay tới
+-----------------------------------------------------------
+-- Tạo khung danh sách người chơi
+local teleFrame = Instance.new("Frame")
+teleFrame.Size = UDim2.new(0.9, 0, 0, 200)
+teleFrame.Position = UDim2.new(0.05, 0, 0, 300)
+teleFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+teleFrame.BackgroundTransparency = 0.1
+teleFrame.Visible = false
+teleFrame.Parent = frame
+
+Instance.new("UICorner", teleFrame).CornerRadius = UDim.new(0, 10)
+
+local scroll = Instance.new("ScrollingFrame")
+scroll.Size = UDim2.new(1, 0, 1, 0)
+scroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+scroll.ScrollBarThickness = 6
+scroll.BackgroundTransparency = 1
+scroll.Parent = teleFrame
+
+local layout = Instance.new("UIListLayout")
+layout.Parent = scroll
+layout.Padding = UDim.new(0, 5)
+
+-- Hàm thêm nút player
+local function addPlayerButton(target)
+	if target == player then return end
+	local btn = Instance.new("TextButton")
+	btn.Size = UDim2.new(1, -10, 0, 35)
+	btn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+	btn.Text = target.Name
+	btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+	btn.Font = Enum.Font.GothamBold
+	btn.TextSize = 16
+	btn.Parent = scroll
+	Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 8)
+
+	btn.MouseButton1Click:Connect(function()
+		if player.Character and target.Character then
+			local hrp = player.Character:FindFirstChild("HumanoidRootPart")
+			local targetHRP = target.Character:FindFirstChild("HumanoidRootPart")
+			if hrp and targetHRP then
+				-- TweenService bay tới người chơi
+				local TweenService = game:GetService("TweenService")
+				local tween = TweenService:Create(
+					hrp,
+					TweenInfo.new(0.8, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+					{CFrame = targetHRP.CFrame + Vector3.new(0, 3, 0)}
+				)
+				tween:Play()
+			end
+		end
+	end)
+end
+
+-- Cập nhật danh sách player
+local function refreshPlayerList()
+	scroll:ClearAllChildren()
+	layout.Parent = scroll
+	for _, p in pairs(Players:GetPlayers()) do
+		addPlayerButton(p)
+	end
+end
+
+-- Bấm nút Teleport
+teleBtn.MouseButton1Click:Connect(function()
+	teleFrame.Visible = not teleFrame.Visible
+	if teleFrame.Visible then
+		refreshPlayerList()
+	end
+end)
+
+-- Cập nhật khi có người ra/vào game
+Players.PlayerAdded:Connect(refreshPlayerList)
+Players.PlayerRemoving:Connect(refreshPlayerList)
 
 -----------------------------------------------------------
 -- 👻 Invisible
@@ -822,20 +901,26 @@ mini2.MouseButton1Click:Connect(function()
 	closebutton.Position =  UDim2.new(0, 0, -1, 27)
 end)
 
------------------------------------------------------------
--- 🎛️ Toggle GUI
------------------------------------------------------------
+-- 🎛️ Toggle GUI (trượt lên/xuống)
 local guiVisible = false
 toggleBtn.MouseButton1Click:Connect(function()
 	guiVisible = not guiVisible
 	if guiVisible then
 		frame.Visible = true
-		TweenService:Create(frame, TweenInfo.new(0.4), {Position = UDim2.new(0.5, -120, 0.7, 0)}):Play()
+		-- trượt lên từ dưới màn hình lên giữa
+		TweenService:Create(frame, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+			Position = UDim2.new(0.5, -100, 0.5, -160)
+		}):Play()
 		toggleBtn.ImageColor3 = Color3.fromRGB(255, 80, 80)
 	else
-		TweenService:Create(frame, TweenInfo.new(0.4), {Position = UDim2.new(0.5, -120, 1.2, 0)}):Play()
-		task.wait(0.4)
-		frame.Visible = false
+		-- trượt xuống từ giữa màn hình xuống dưới
+		TweenService:Create(frame, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
+			Position = UDim2.new(0.5, -100, 1.2, 0)
+		}):Play()
+		-- ẩn frame sau khi tween xong
+		task.delay(0.4, function()
+			frame.Visible = false
+		end)
 		toggleBtn.ImageColor3 = Color3.fromRGB(0, 255, 255)
 	end
 end)
