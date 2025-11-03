@@ -158,7 +158,11 @@ local teleBtn = makeBtn("🌀 Teleport", 255)
 -----------------------------------------------------------
 -- 🌀 TELEPORT - Chọn người chơi để bay tới
 -----------------------------------------------------------
--- Tạo khung danh sách người chơi
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local TweenService = game:GetService("TweenService")
+
+-- Khung danh sách người chơi
 local teleFrame = Instance.new("Frame")
 teleFrame.Size = UDim2.new(0.9, 0, 0, 200)
 teleFrame.Position = UDim2.new(0.05, 0, 0, 300)
@@ -169,6 +173,7 @@ teleFrame.Parent = frame
 
 Instance.new("UICorner", teleFrame).CornerRadius = UDim.new(0, 10)
 
+-- Scroll
 local scroll = Instance.new("ScrollingFrame")
 scroll.Size = UDim2.new(1, 0, 1, 0)
 scroll.CanvasSize = UDim2.new(0, 0, 0, 0)
@@ -180,9 +185,11 @@ local layout = Instance.new("UIListLayout")
 layout.Parent = scroll
 layout.Padding = UDim.new(0, 5)
 
--- Hàm thêm nút player
+-- Thêm nút player
 local function addPlayerButton(target)
 	if target == player then return end
+	if not target.Character then return end
+
 	local btn = Instance.new("TextButton")
 	btn.Size = UDim2.new(1, -10, 0, 35)
 	btn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
@@ -198,8 +205,6 @@ local function addPlayerButton(target)
 			local hrp = player.Character:FindFirstChild("HumanoidRootPart")
 			local targetHRP = target.Character:FindFirstChild("HumanoidRootPart")
 			if hrp and targetHRP then
-				-- TweenService bay tới người chơi
-				local TweenService = game:GetService("TweenService")
 				local tween = TweenService:Create(
 					hrp,
 					TweenInfo.new(0.8, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
@@ -211,16 +216,19 @@ local function addPlayerButton(target)
 	end)
 end
 
--- Cập nhật danh sách player
+-- Refresh danh sách player
 local function refreshPlayerList()
-	scroll:ClearAllChildren()
-	layout.Parent = scroll
+	for _, child in pairs(scroll:GetChildren()) do
+		if child:IsA("TextButton") then
+			child:Destroy()
+		end
+	end
 	for _, p in pairs(Players:GetPlayers()) do
 		addPlayerButton(p)
 	end
 end
 
--- Bấm nút Teleport
+-- Nút Teleport
 teleBtn.MouseButton1Click:Connect(function()
 	teleFrame.Visible = not teleFrame.Visible
 	if teleFrame.Visible then
@@ -228,9 +236,13 @@ teleBtn.MouseButton1Click:Connect(function()
 	end
 end)
 
--- Cập nhật khi có người ra/vào game
+-- Cập nhật khi player vào/ra
 Players.PlayerAdded:Connect(refreshPlayerList)
 Players.PlayerRemoving:Connect(refreshPlayerList)
+
+layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+	scroll.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y + 5)
+end)
 
 -----------------------------------------------------------
 -- 👻 Invisible
