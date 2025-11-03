@@ -224,13 +224,13 @@ local player = Players.LocalPlayer
 local espEnabled = false
 local espObjects = {}
 
--- Hàm tạo ESP cho một player
+-- Hàm tạo ESP cho 1 player
 local function createESP(target)
 	if not target.Character then return end
 	local head = target.Character:FindFirstChild("Head")
 	if not head then return end
 
-	-- Nếu đã có ESP trước đó thì xóa
+	-- Nếu đã có ESP cũ thì xóa
 	if espObjects[target] then
 		if espObjects[target].connection then
 			espObjects[target].connection:Disconnect()
@@ -241,7 +241,7 @@ local function createESP(target)
 		espObjects[target] = nil
 	end
 
-	-- Tạo BillboardGui
+	-- Billboard GUI
 	local billboard = Instance.new("BillboardGui")
 	billboard.Name = "ESP"
 	billboard.Size = UDim2.new(0, 200, 0, 50)
@@ -252,13 +252,13 @@ local function createESP(target)
 	local textLabel = Instance.new("TextLabel")
 	textLabel.Size = UDim2.new(1, 0, 1, 0)
 	textLabel.BackgroundTransparency = 1
-	textLabel.TextColor3 = Color3.fromRGB(0, 255, 255)
+	textLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
 	textLabel.Font = Enum.Font.GothamBold
 	textLabel.TextSize = 16
 	textLabel.TextStrokeTransparency = 0.5
 	textLabel.Parent = billboard
 
-	-- Cập nhật khoảng cách liên tục
+	-- Cập nhật khoảng cách + đổi màu cầu vồng
 	local connection
 	connection = RunService.RenderStepped:Connect(function()
 		if head and espEnabled then
@@ -266,6 +266,13 @@ local function createESP(target)
 			if hrp then
 				local distance = (hrp.Position - head.Position).Magnitude
 				textLabel.Text = string.format("%s (%.0fm)", target.Name, distance)
+
+				-- 🌈 Hiệu ứng bảy màu
+				local t = tick() * 2 -- tốc độ đổi màu
+				local r = math.sin(t) * 127 + 128
+				local g = math.sin(t + 2) * 127 + 128
+				local b = math.sin(t + 4) * 127 + 128
+				textLabel.TextColor3 = Color3.fromRGB(r, g, b)
 			end
 		else
 			connection:Disconnect()
@@ -275,7 +282,7 @@ local function createESP(target)
 	espObjects[target] = {billboard = billboard, connection = connection}
 end
 
--- Hàm xóa ESP
+-- Xóa ESP
 local function removeESP(target)
 	if espObjects[target] then
 		if espObjects[target].connection then
@@ -295,14 +302,12 @@ local function toggleESP()
 	espBtn.BackgroundColor3 = espEnabled and Color3.fromRGB(0,200,255) or Color3.fromRGB(60,60,60)
 
 	if espEnabled then
-		-- Tạo ESP cho tất cả player đã có character
 		for _, p in pairs(Players:GetPlayers()) do
 			if p ~= player and p.Character then
 				createESP(p)
 			end
 		end
 	else
-		-- Xóa hết ESP
 		for p, _ in pairs(espObjects) do
 			removeESP(p)
 		end
@@ -311,10 +316,10 @@ end
 
 espBtn.MouseButton1Click:Connect(toggleESP)
 
--- Gắn listener CharacterAdded cho tất cả player (join trước hoặc sau)
+-- Gắn listener cho player mới
 for _, p in pairs(Players:GetPlayers()) do
 	if p ~= player then
-		p.CharacterAdded:Connect(function(char)
+		p.CharacterAdded:Connect(function()
 			if espEnabled then
 				createESP(p)
 			end
@@ -322,10 +327,9 @@ for _, p in pairs(Players:GetPlayers()) do
 	end
 end
 
--- Player mới join
 Players.PlayerAdded:Connect(function(p)
 	if p ~= player then
-		p.CharacterAdded:Connect(function(char)
+		p.CharacterAdded:Connect(function()
 			if espEnabled then
 				createESP(p)
 			end
@@ -333,7 +337,6 @@ Players.PlayerAdded:Connect(function(p)
 	end
 end)
 
--- Player rời game
 Players.PlayerRemoving:Connect(removeESP)
 
 -----------------------------------------------------------
