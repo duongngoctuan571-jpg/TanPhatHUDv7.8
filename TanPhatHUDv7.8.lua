@@ -429,6 +429,9 @@ Players.PlayerAdded:Connect(function(p)
 end)
 
 Players.PlayerRemoving:Connect(removeESP)
+-- Cập nhật khi có người ra/vào game
+Players.PlayerAdded:Connect(refreshPlayerList)
+Players.PlayerRemoving:Connect(refreshPlayerList)
 
 -----------------------------------------------------------
 -- ✈️ Fly V3 GUI (Integrated)
