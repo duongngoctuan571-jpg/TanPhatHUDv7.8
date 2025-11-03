@@ -875,7 +875,7 @@ if currentTime - lastNotificationTime >= notificationCooldown then
 	game.StarterGui:SetCore("SendNotification", {
 		Title = "TanPhat HUD",
 		Text = "Successfully",
-		Icon = "rbxassetid://137676684711350",
+		Icon = "rbxassetid://137676684711350", -- dấu phẩy không thừa
 		Duration = 1
 	})
 	lastNotificationTime = currentTime
