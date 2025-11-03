@@ -79,12 +79,13 @@ frame.BorderSizePixel = 0
 frame.Visible = false
 frame.Parent = gui
 
--- Cho phép kéo thả frame chính
-local dragging = false
-local dragInput, mousePos, framePos
+--// Kéo thả frame (hỗ trợ cả PC và điện thoại)
+local UIS = game:GetService("UserInputService")
+local dragging, dragInput, mousePos, framePos
 
 frame.InputBegan:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.MouseButton1 then
+	if input.UserInputType == Enum.UserInputType.MouseButton1 
+	or input.UserInputType == Enum.UserInputType.Touch then
 		dragging = true
 		mousePos = input.Position
 		framePos = frame.Position
@@ -98,12 +99,13 @@ frame.InputBegan:Connect(function(input)
 end)
 
 frame.InputChanged:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.MouseMovement then
+	if input.UserInputType == Enum.UserInputType.MouseMovement 
+	or input.UserInputType == Enum.UserInputType.Touch then
 		dragInput = input
 	end
 end)
 
-game:GetService("UserInputService").InputChanged:Connect(function(input)
+UIS.InputChanged:Connect(function(input)
 	if input == dragInput and dragging then
 		local delta = input.Position - mousePos
 		frame.Position = UDim2.new(
