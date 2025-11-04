@@ -169,8 +169,8 @@ teleFrame.Position = UDim2.new(0.05, 0, 0, 300)
 teleFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
 teleFrame.BackgroundTransparency = 0.1
 teleFrame.Visible = false
-teleFrame.Active = true
-teleFrame.ZIndex = 10
+teleFrame.Active = true -- Bật Active để nhận touch mobile
+teleFrame.ZIndex = 10 -- ZIndex cao hơn để không bị che
 teleFrame.Parent = frame
 
 Instance.new("UICorner", teleFrame).CornerRadius = UDim.new(0, 10)
@@ -181,8 +181,8 @@ scroll.Size = UDim2.new(1, 0, 1, 0)
 scroll.CanvasSize = UDim2.new(0, 0, 0, 0)
 scroll.ScrollBarThickness = 6
 scroll.BackgroundTransparency = 1
-scroll.Active = true 
-scroll.Selectable = true 
+scroll.Active = true  -- Bật Active để touch bên trong hoạt động
+scroll.Selectable = true   -- Hỗ trợ mobile/gamepad
 scroll.ZIndex = 11
 scroll.Parent = teleFrame
 
@@ -202,7 +202,7 @@ local function addPlayerButton(target)
 	btn.TextColor3 = Color3.fromRGB(255, 255, 255)
 	btn.Font = Enum.Font.GothamBold
 	btn.TextSize = 16
-	btn.ZIndex = 12
+	btn.ZIndex = 12 -- Luôn nằm trên ScrollFrame
 	btn.Parent = scroll
 	Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 8)
 
