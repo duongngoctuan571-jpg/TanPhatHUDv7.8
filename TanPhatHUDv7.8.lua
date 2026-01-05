@@ -1003,7 +1003,7 @@ end
 -- mọi thắc mắc vui lòng ib facebook bên trên để được giải đáp nhanh chóng.
 -- thêm tính năng chạy nhanh hơn.
 -- nút mở đóng có thể di chuyển.
--- thông báo rõ hơn trên tiktok: @duongtanphat14072013.
+-- thông báo rõ hơn trên tiktok: @nobitalienminhuyenthoai.
 -- chức năng đi xuyên tường.
 -- fix fly mobile.
 -- fix lại fly.
@@ -1012,7 +1012,7 @@ end
 -- The script is currently in the testing phase and may contain errors.
 -- Please report any errors for quick fixes.
 -- Thank you for playing!
--- by tiktok: @duongtanphat14072013.
+-- by tiktok: @nobitalienminhuyenthoai.
 -- by facebook: Dương Phát.
 -- there will be more features in the future.
 -- i will try to reply to facebook as soon as possible.
