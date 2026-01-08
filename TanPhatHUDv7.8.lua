@@ -1030,6 +1030,76 @@ if currentTime - lastNotificationTime >= notificationCooldown then
 end
 
 -----------------------------------------------------------
+-- 🌈 FPS COUNTER (Rainbow + Random Font + Random Position)
+-----------------------------------------------------------
+
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+local player = game.Players.LocalPlayer
+
+-- GUI
+local fpsGui = Instance.new("ScreenGui")
+fpsGui.Name = "FPS_Rainbow"
+fpsGui.ResetOnSpawn = false
+fpsGui.Parent = player:WaitForChild("PlayerGui")
+
+local fpsLabel = Instance.new("TextLabel")
+fpsLabel.Size = UDim2.new(0, 160, 0, 40)
+fpsLabel.BackgroundTransparency = 1
+fpsLabel.TextStrokeTransparency = 0.4
+fpsLabel.TextScaled = true
+fpsLabel.Font = Enum.Font.GothamBold
+fpsLabel.Parent = fpsGui
+
+fpsLabel.Font = Enum.Font.FredokaOne
+
+-- Random vị trí nhưng tránh giữa màn hình
+local function randomPosition()
+	local x, y
+	repeat
+		x = math.random(5, 85)
+		y = math.random(5, 85)
+		-- né vùng giữa (40% → 60%)
+	until not (x > 40 and x < 60 and y > 40 and y < 60)
+
+	return UDim2.new(x / 100, 0, y / 100, 0)
+end
+
+fpsLabel.Position = randomPosition()
+
+-- Đổi font + vị trí mỗi 3 giây
+task.spawn(function()
+	while true do
+		task.wait(3)
+		fpsLabel.Position = randomPosition()
+	end
+end)
+
+-- FPS logic
+local frames = 0
+local lastTime = tick()
+local fps = 60
+
+RunService.RenderStepped:Connect(function()
+	frames += 1
+	local now = tick()
+	if now - lastTime >= 1 then
+		fps = frames
+		frames = 0
+		lastTime = now
+	end
+
+	fpsLabel.Text = "FPS: "..fps
+
+	-- 🌈 7 màu cầu vồng
+	local t = tick() * 2
+	local r = math.sin(t) * 127 + 128
+	local g = math.sin(t + 2) * 127 + 128
+	local b = math.sin(t + 4) * 127 + 128
+	fpsLabel.TextColor3 = Color3.fromRGB(r, g, b)
+end)
+
+-----------------------------------------------------------
 --               ⚠️ Thông báo Script                     --
 -----------------------------------------------------------
 -- hiện script đang trong quá trình thử nghiệm và có thể có lỗi.
