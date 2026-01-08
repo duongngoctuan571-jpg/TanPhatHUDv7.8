@@ -270,17 +270,54 @@ invisBtn.MouseButton1Click:Connect(function()
 end)
 
 -----------------------------------------------------------
--- 💨 Speed
+-- 💨 Speed (Input số, không giới hạn)
 -----------------------------------------------------------
+
 local speedBoost = false
-local NORMAL_WALK, BOOST_SPEED = 16, 90
+local NORMAL_WALK = 16
+local CUSTOM_SPEED = 50
+
+local speedBox = Instance.new("TextBox")
+speedBox.Size = UDim2.new(0.8, 0, 0, 35)
+speedBox.Position = UDim2.new(0.1, 0, 0.42, 0)
+speedBox.BackgroundColor3 = Color3.fromRGB(30,30,30)
+speedBox.TextColor3 = Color3.fromRGB(255,255,255)
+speedBox.PlaceholderText = "Nhập Speed"
+speedBox.ClearTextOnFocus = false
+speedBox.Visible = false
+speedBox.Font = Enum.Font.GothamBold
+speedBox.TextSize = 16
+speedBox.Parent = frame
+speedBox.Text = ""
+Instance.new("UICorner", speedBox).CornerRadius = UDim.new(0,8)
+
 speedBtn.MouseButton1Click:Connect(function()
-	speedBoost = not speedBoost
-	hum.WalkSpeed = speedBoost and BOOST_SPEED or NORMAL_WALK
-	TweenService:Create(speedBtn, TweenInfo.new(0.3), {
-		BackgroundColor3 = speedBoost and Color3.fromRGB(0,200,255) or Color3.fromRGB(60,60,60)
-	}):Play()
-	speedBtn.Text = speedBoost and "💨 Speed: ON" or "💨 Speed: OFF"
+	if not speedBoost then
+		speedBox.Visible = true
+		speedBox:CaptureFocus()
+	else
+		speedBoost = false
+		hum.WalkSpeed = NORMAL_WALK
+		speedBtn.Text = "💨 Speed: OFF"
+		speedBtn.BackgroundColor3 = Color3.fromRGB(60,60,60)
+	end
+end)
+
+speedBox.FocusLost:Connect(function(enterPressed)
+	if not enterPressed then return end
+
+	local value = tonumber(speedBox.Text)
+	if value then
+		CUSTOM_SPEED = value
+		hum.WalkSpeed = CUSTOM_SPEED
+		speedBoost = true
+
+		speedBtn.Text = "💨 Speed: "..CUSTOM_SPEED
+		speedBtn.BackgroundColor3 = Color3.fromRGB(0,200,255)
+	end
+
+	speedBox.Text = ""
+	speedBox.Visible = false
 end)
 
 -----------------------------------------------------------
