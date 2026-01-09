@@ -19,7 +19,7 @@ local hrp = char:WaitForChild("HumanoidRootPart")
 -----------------------------------------------------------
 local gui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
 gui.Name = "TanPhatHUD"
-gui.ResetOnSpawn = false
+gui.ResetOnSpawn = true
 
 -- Toggle Button
 local toggleBtn = Instance.new("ImageButton")
@@ -72,13 +72,13 @@ end)
 
 -- Frame
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 240, 0, 250)
+frame.Size = UDim2.new(0, 240, 0, 370)
 frame.Position = UDim2.new(0.5, -100, 0.5, -160)
 frame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
 frame.BorderSizePixel = 0
 frame.Visible = false
 frame.Parent = gui
-frame.Size = UDim2.new(0, 200, 0, 320)
+frame.Size = UDim2.new(0, 200, 0, 370)
 
 --// Kéo thả frame (hỗ trợ cả PC và điện thoại)
 local UIS = game:GetService("UserInputService")
@@ -154,6 +154,58 @@ local speedBtn = makeBtn("💨 Speed: OFF", 120)
 local noclipBtn = makeBtn("🚪 NoClip: OFF", 165)
 local espBtn = makeBtn("🔍 ESP: OFF", 210)
 local teleBtn = makeBtn("🌀 Teleport", 255)
+local jumpBtn = makeBtn("🦘 Jump: OFF", 300)
+
+-----------------------------------------------------------
+-- 🦘 JUMP INPUT
+-----------------------------------------------------------
+
+local jumpOn = false
+local NORMAL_JUMP = 50
+
+local jumpBox = Instance.new("TextBox")
+jumpBox.Size = UDim2.new(0.8, 0, 0, 35)
+jumpBox.Position = UDim2.new(0.1, 0, 0.55, 0)
+jumpBox.BackgroundColor3 = Color3.fromRGB(30,30,30)
+jumpBox.TextColor3 = Color3.fromRGB(255,255,255)
+jumpBox.PlaceholderText = "Nhập Jump Power"
+jumpBox.ClearTextOnFocus = false
+jumpBox.Visible = false
+jumpBox.Font = Enum.Font.GothamBold
+jumpBox.TextSize = 16
+jumpBox.Parent = frame
+jumpBox.Text = ""
+Instance.new("UICorner", jumpBox).CornerRadius = UDim.new(0,8)
+
+jumpBtn.MouseButton1Click:Connect(function()
+	if not jumpOn then
+		jumpBox.Visible = true
+		jumpBox:CaptureFocus()
+	else
+		jumpOn = false
+		hum.UseJumpPower = true
+		hum.JumpPower = NORMAL_JUMP
+		jumpBtn.Text = "🦘 Jump: OFF"
+		jumpBtn.BackgroundColor3 = Color3.fromRGB(60,60,60)
+	end
+end)
+
+jumpBox.FocusLost:Connect(function(enterPressed)
+	if not enterPressed then return end
+
+	local value = tonumber(jumpBox.Text)
+	if value then
+		jumpOn = true
+		hum.UseJumpPower = true
+		hum.JumpPower = value
+
+		jumpBtn.Text = "🦘 Jump: "..value
+		jumpBtn.BackgroundColor3 = Color3.fromRGB(0,200,255)
+	end
+
+	jumpBox.Text = ""
+	jumpBox.Visible = false
+end)
 
 -----------------------------------------------------------
 -- 🌀 TELEPORT - Chọn người chơi để bay tới
