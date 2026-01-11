@@ -1129,7 +1129,7 @@ local player = game.Players.LocalPlayer
 -- GUI
 local fpsGui = Instance.new("ScreenGui")
 fpsGui.Name = "FPS_Rainbow"
-fpsGui.ResetOnSpawn = false
+fpsGui.ResetOnSpawn = true
 fpsGui.Parent = player:WaitForChild("PlayerGui")
 
 local fpsLabel = Instance.new("TextLabel")
